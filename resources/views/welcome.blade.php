@@ -74,9 +74,10 @@
                     <span class="text-xs font-bold text-slate-500 uppercase">Total Transaksi</span>
                     <span class="text-xs text-green-600 font-bold">+12% Minggu ini</span>
                 </div>
-                <div class="text-2xl font-bold text-slate-800">1,240 Data</div>
+                <div class="text-2xl font-bold text-slate-800">{{ $totalTransactions ?? 0 }} Data</div>
                 <div class="w-full bg-slate-200 h-1.5 rounded-full mt-2">
-                    <div class="bg-blue-600 h-1.5 rounded-full" style="width: 70%"></div>
+                  @php $bar = min($accuracy ?? 0, 100); @endphp
+                  <div class="bg-blue-600 h-1.5 rounded-full" style="width: {{ $bar }}%"></div>
                 </div>
               </div>
             </div>
@@ -136,19 +137,19 @@
 
           <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div class="p-6 bg-slate-800 rounded-xl border border-slate-700">
-              <div class="text-4xl font-bold text-blue-500 mb-2">150+</div>
-              <div class="text-sm text-slate-400">Jenis Alat Lab</div>
+              <div class="text-4xl font-bold text-blue-500 mb-2">{{ $totalTransactions ?? 0 }}</div>
+              <div class="text-sm text-slate-400">Total Transaksi</div>
             </div>
             <div class="p-6 bg-slate-800 rounded-xl border border-slate-700">
-              <div class="text-4xl font-bold text-purple-500 mb-2">45</div>
+              <div class="text-4xl font-bold text-purple-500 mb-2">{{ $activeTransactions ?? 0 }}</div>
               <div class="text-sm text-slate-400">Peminjaman Aktif</div>
             </div>
             <div class="p-6 bg-slate-800 rounded-xl border border-slate-700">
-              <div class="text-4xl font-bold text-green-500 mb-2">12</div>
+              <div class="text-4xl font-bold text-green-500 mb-2">{{ $damageReports ?? 0 }}</div>
               <div class="text-sm text-slate-400">Laporan Kerusakan</div>
             </div>
             <div class="p-6 bg-slate-800 rounded-xl border border-slate-700">
-              <div class="text-4xl font-bold text-orange-500 mb-2">98%</div>
+              <div class="text-4xl font-bold text-orange-500 mb-2">{{ $accuracy ?? 0 }}%</div>
               <div class="text-sm text-slate-400">Akurasi Data</div>
             </div>
           </div>
@@ -158,52 +159,52 @@
       <section id="tim" class="py-20 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
         <div class="container mx-auto px-6 md:px-8 lg:px-16 xl:px-24">
             <div class="text-center mb-16">
-                <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Tim Pengembang (Kelompok 4)</h2>
+                <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Tim Pengembang (Kelompok 8)</h2>
                 <p class="mt-2 text-slate-600">Mahasiswa Informatika - Kelas A</p>
             </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div class="group">
               <div class="relative overflow-hidden rounded-xl mb-4">
-                <img src="https://i.pravatar.cc/300?img=11" alt="Member" class="w-full h-64 object-cover object-center group-hover:scale-105 transition duration-500">
+                <img src="{{ asset('assets/FAHMI.jpg') }}" alt="Member" class="w-full h-64 object-cover object-center group-hover:scale-105 transition duration-500">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4">
-                    <span class="text-white text-sm">NIM: 12345678</span>
+                    <span class="text-lg font-bold text-slate-900 dark:text-white">NIM: 230533609604</span>
                 </div>
               </div>
-              <h3 class="text-lg font-bold text-slate-900 dark:text-white">Nama Mahasiswa 1</h3>
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white">ACHMAD MUZAMMI FAHMI</h3>
               <p class="text-sm text-blue-600 font-medium">Full Stack & Database</p>
             </div>
 
             <div class="group">
               <div class="relative overflow-hidden rounded-xl mb-4">
-                <img src="https://i.pravatar.cc/300?img=59" alt="Member" class="w-full h-64 object-cover object-center group-hover:scale-105 transition duration-500">
+                <img src="{{ asset('assets/ARIF.jpg') }}" alt="Member" class="w-full h-64 object-cover object-center group-hover:scale-105 transition duration-500">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4">
-                    <span class="text-white text-sm">NIM: 12345679</span>
+                    <span class="text-lg font-bold text-slate-900 dark:text-white">NIM: 230533610158</span>
                 </div>
               </div>
-              <h3 class="text-lg font-bold text-slate-900 dark:text-white">Nama Mahasiswa 2</h3>
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white">ACHMAD ARIF SETIAWAN</h3>
               <p class="text-sm text-blue-600 font-medium">Frontend UI/UX</p>
             </div>
 
             <div class="group">
               <div class="relative overflow-hidden rounded-xl mb-4">
-                <img src="https://i.pravatar.cc/300?img=33" alt="Member" class="w-full h-64 object-cover object-center group-hover:scale-105 transition duration-500">
+                <img src="{{ asset('assets/NISA.jpg') }}" alt="Member" class="w-full h-64 object-cover object-center group-hover:scale-105 transition duration-500">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4">
-                    <span class="text-white text-sm">NIM: 12345680</span>
+                    <span class="text-lg font-bold text-slate-900 dark:text-white">NIM: 230533601886</span>
                 </div>
               </div>
-              <h3 class="text-lg font-bold text-slate-900 dark:text-white">Nama Mahasiswa 3</h3>
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white">ANISATUL QOMARIYAH</h3>
               <p class="text-sm text-blue-600 font-medium">Data Logic & Process</p>
             </div>
 
             <div class="group">
               <div class="relative overflow-hidden rounded-xl mb-4">
-                <img src="https://i.pravatar.cc/300?img=12" alt="Member" class="w-full h-64 object-cover object-center group-hover:scale-105 transition duration-500">
+                <img src="{{ asset('assets/ARIF.jpg') }}" alt="Member" class="w-full h-64 object-cover object-center group-hover:scale-105 transition duration-500">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4">
-                    <span class="text-white text-sm">NIM: 12345681</span>
+                    <span class="text-lg font-bold text-slate-900 dark:text-white">NIM: 230533605510</span>
                 </div>
               </div>
-              <h3 class="text-lg font-bold text-slate-900 dark:text-white">Nama Mahasiswa 4</h3>
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white">AMALIA PRAMESWARI ALVINA</h3>
               <p class="text-sm text-blue-600 font-medium">Documentation & Testing</p>
             </div>
           </div>
@@ -217,11 +218,11 @@
                 <span>SIPL Kampus</span>
             </div>
             <p class="text-slate-500 text-sm mb-8">
-                Dibuat untuk memenuhi Tugas Mata Kuliah [Nama Matkul] <br>
-                Program Studi Teknik Informatika - Semester [X]
+                Dibuat untuk memenuhi Tugas Mata Kuliah Data Science <br>
+                Program Studi S1 Pendidikan Teknik Informatika - Semester 5
             </p>
             <div class="text-slate-400 text-xs">
-                &copy; {{ date('Y') }} Kelompok 4. All rights reserved.
+                &copy; {{ date('Y') }} Kelompok 8. All rights reserved.
             </div>
         </div>
       </footer>

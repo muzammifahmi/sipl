@@ -5,14 +5,27 @@ use App\Http\Controllers\PeminjamanController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\PreprocessingController;
 use App\Http\Controllers\MahasiswaController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ReportController;
+use App\Models\Mahasiswa;
+use App\Models\Peminjaman;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    // Preview data and stats for the landing page
+    $mahasiswas = Mahasiswa::orderBy('created_at', 'desc')->limit(10)->get();
 
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ReportController;
+    $totalTransactions = Peminjaman::count();
+    $activeTransactions = Peminjaman::where('status', 'Dipinjam')->count();
+    $damageReports = Peminjaman::whereNotNull('kondisi_pinjam_clean')->count();
+
+    // Accuracy = percent mahasiswa with jurusan_clean mapped
+    $totalMahasiswa = Mahasiswa::count();
+    $cleaned = Mahasiswa::whereNotNull('jurusan_clean')->count();
+    $accuracy = $totalMahasiswa > 0 ? round(($cleaned / $totalMahasiswa) * 100) : 0;
+
+    return view('welcome', compact('mahasiswas', 'totalTransactions', 'activeTransactions', 'damageReports', 'accuracy'));
+});
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
