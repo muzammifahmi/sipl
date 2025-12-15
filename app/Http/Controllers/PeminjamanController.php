@@ -88,8 +88,7 @@ class PeminjamanController extends Controller
                 ]);
             });
 
-            return redirect()->route('peminjaman.index')
-                ->with('success', 'Data Peminjaman berhasil diakuisisi (3 Tabel Terupdate).');
+            return redirect()->route('peminjaman.index');
         } catch (\Exception $e) {
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
         }
@@ -130,5 +129,32 @@ class PeminjamanController extends Controller
         // Opsional: Hapus data (biasanya peminjaman jarang dihapus fisik, hanya ubah status)
         $peminjaman->delete();
         return back()->with('success', 'Data transaksi dihapus.');
+    }
+
+    /**
+     * API untuk mencari mahasiswa berdasarkan NIM
+     */
+    public function searchMahasiswa(Request $request)
+    {
+        $nim = $request->query('nim');
+        if (!$nim) {
+            return response()->json(['error' => 'NIM diperlukan'], 400);
+        }
+
+        $mahasiswa = Mahasiswa::where('nim', $nim)->first();
+
+        if ($mahasiswa) {
+            return response()->json([
+                'found' => true,
+                'data' => [
+                    'nama' => $mahasiswa->nama,
+                    'jurusan_raw' => $mahasiswa->jurusan_raw,
+                    'angkatan' => $mahasiswa->angkatan,
+                    'email' => $mahasiswa->email,
+                ]
+            ]);
+        } else {
+            return response()->json(['found' => false]);
+        }
     }
 }

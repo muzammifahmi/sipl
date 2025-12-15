@@ -38,6 +38,7 @@ Route::middleware('auth')->group(function () {
 });
 Route::get('/reports/export', [ReportController::class, 'export'])->middleware('auth')->name('reports.export');
 Route::resource('peminjaman', PeminjamanController::class)->middleware('auth');
+Route::get('/api/mahasiswa/search', [PeminjamanController::class, 'searchMahasiswa'])->middleware('auth')->name('api.mahasiswa.search');
 Route::resource('barang', BarangController::class)->middleware('auth');
 Route::resource('mahasiswa', MahasiswaController::class)->middleware('auth');
 Route::post('/mahasiswa/preprocess', [MahasiswaController::class, 'preprocess'])->name('mahasiswa.preprocess');

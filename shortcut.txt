@@ -1,0 +1,7 @@
+membuat branch agar main tidak hilang
+git checkout -b (nama branch)
+
+untuk menghapus branch
+git branch -D fitur-x
+git restore .
+git clean -fd
