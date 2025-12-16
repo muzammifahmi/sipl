@@ -15,25 +15,193 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
+            {{-- Alert Success --}}
             @if(session('success'))
-            <div class="mb-4 bg-green-50 border-l-4 border-green-500 p-4 rounded shadow-sm">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm text-green-700">
-                            {{ session('success') }}
-                        </p>
+                <div class="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded shadow-sm">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-green-700">
+                                {{ session('success') }}
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </div>
+            @endif
+
+            {{-- Alert Error --}}
+            @if(session('error'))
+                <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-sm">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-red-700">
+                                {{ session('error') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Alert Info --}}
+            @if(session('info'))
+                <div class="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-blue-700">
+                                {{ session('info') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Alert Warning: Stok Habis --}}
+            @php
+                $outOfStockCount = $barangs->where('stok_tersedia', 0)->count();
+                $totalItems = $barangs->count();
+                $lowStockCount = $barangs->where('stok_tersedia', '>', 0)->where('stok_tersedia', '<=', 3)->count();
+            @endphp
+
+            @if($outOfStockCount > 0)
+                <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-sm">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-red-700">
+                                <strong>Peringatan!</strong> Terdapat <span class="font-bold">{{ $outOfStockCount }} alat</span> yang stoknya habis.
+                            </p>
+                            <p class="text-xs text-red-600 mt-1">
+                                Segera lakukan penambahan stok atau periksa peminjaman yang sedang berlangsung.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            @if($lowStockCount > 0)
+                <div class="mb-6 bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded shadow-sm">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700">
+                                <strong>Perhatian!</strong> Terdapat <span class="font-bold">{{ $lowStockCount }} alat</span> yang stoknya rendah (≤ 3).
+                            </p>
+                            <p class="text-xs text-yellow-600 mt-1">
+                                Pertimbangkan untuk menambah stok alat ini.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Alert Warning: Data Kosong --}}
+            @if($barangs->isEmpty())
+                <div class="mb-6 bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded shadow-sm">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700">
+                                <strong>Inventaris Kosong!</strong> Belum ada data alat yang terdaftar.
+                            </p>
+                            <p class="text-xs text-yellow-600 mt-1">
+                                Tambahkan alat baru untuk memulai manajemen inventaris.
+                            </p>
+                        </div>
+                    </div>
+                </div>
             @endif
 
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg border border-gray-100 dark:border-gray-700">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
+
+                    {{-- Statistik Data --}}
+                    @if(!$barangs->isEmpty())
+                        <div class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-6 w-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-blue-800 dark:text-blue-300">Total Alat</p>
+                                        <p class="text-lg font-bold text-blue-900 dark:text-blue-100">{{ $totalItems }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg border border-green-100 dark:border-green-800">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-6 w-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-green-800 dark:text-green-300">Tersedia</p>
+                                        <p class="text-lg font-bold text-green-900 dark:text-green-100">
+                                            {{ $barangs->sum('stok_tersedia') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-red-50 dark:bg-red-900/30 p-4 rounded-lg border border-red-100 dark:border-red-800">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-6 w-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-red-800 dark:text-red-300">Habis</p>
+                                        <p class="text-lg font-bold text-red-900 dark:text-red-100">{{ $outOfStockCount }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-yellow-50 dark:bg-yellow-900/30 p-4 rounded-lg border border-yellow-100 dark:border-yellow-800">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-6 w-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-yellow-800 dark:text-yellow-300">Stok Rendah</p>
+                                        <p class="text-lg font-bold text-yellow-900 dark:text-yellow-100">{{ $lowStockCount }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm text-slate-600 dark:text-slate-400">
@@ -78,6 +246,8 @@
                                         </div>
                                         @if($barang->stok_tersedia == 0)
                                             <span class="text-[10px] text-red-500 font-semibold uppercase tracking-wide">Habis Dipinjam</span>
+                                        @elseif($barang->stok_tersedia <= 3)
+                                            <span class="text-[10px] text-yellow-600 font-semibold uppercase tracking-wide">Stok Rendah</span>
                                         @endif
                                     </td>
 
@@ -90,14 +260,19 @@
 
                                     <td class="px-6 py-4 text-right">
                                         <div class="flex items-center justify-end gap-2">
-                                            <a href="{{ route('barang.edit', $barang->id) }}" class="p-2 text-slate-400 hover:text-yellow-600 hover:bg-yellow-50 rounded-full transition" title="Edit">
+                                            <a href="{{ route('barang.edit', $barang->id) }}"
+                                               class="p-2 text-slate-400 hover:text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-full transition"
+                                               title="Edit">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                             </a>
 
-                                            <form action="{{ route('barang.destroy', $barang->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus alat ini?');">
+                                            <form action="{{ route('barang.destroy', $barang->id) }}" method="POST" class="delete-form">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition" title="Hapus">
+                                                <button type="button"
+                                                        onclick="confirmDelete(this)"
+                                                        class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition"
+                                                        title="Hapus">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                                                 </button>
                                             </form>
@@ -129,4 +304,91 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Confirm delete with SweetAlert
+        function confirmDelete(button) {
+            const form = button.closest('.delete-form');
+            const row = button.closest('tr');
+            const namaBarang = row.querySelector('td:nth-child(2) .font-medium').textContent;
+            const kodeBarang = row.querySelector('td:nth-child(1)').textContent.trim();
+
+            Swal.fire({
+                title: 'Hapus Alat Inventaris?',
+                html: `<div class="text-left">
+                    <p class="mb-3">Anda akan menghapus alat:</p>
+                    <div class="mb-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                        <p class="font-bold text-gray-900 dark:text-white">${namaBarang}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">${kodeBarang}</p>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-1">• Data alat akan dihapus permanen</p>
+                    <p class="text-sm text-gray-600">• Riwayat peminjaman terkait tidak akan terpengaruh</p>
+                    <div class="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded">
+                        <p class="text-sm font-medium text-red-800 dark:text-red-300">Tindakan ini tidak dapat dibatalkan.</p>
+                    </div>
+                </div>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#DC2626',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Ya, Hapus',
+                cancelButtonText: 'Batal',
+                width: '500px'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Menghapus...',
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        willOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    form.submit();
+                }
+            });
+        }
+
+        // Check if there are low stock items on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            @if($lowStockCount > 0)
+                // Optional: Play a subtle notification sound or animation
+                const lowStockItems = document.querySelectorAll('tr td:nth-child(4) .text-yellow-600');
+                if (lowStockItems.length > 0) {
+                    lowStockItems.forEach(item => {
+                        const row = item.closest('tr');
+                        row.classList.add('animate-pulse', 'duration-1000');
+                        setTimeout(() => {
+                            row.classList.remove('animate-pulse');
+                        }, 2000);
+                    });
+                }
+            @endif
+
+            @if($outOfStockCount > 0)
+                // Highlight out of stock items
+                const outOfStockItems = document.querySelectorAll('tr td:nth-child(4) .text-red-600');
+                outOfStockItems.forEach(item => {
+                    const row = item.closest('tr');
+                    row.classList.add('bg-red-50', 'dark:bg-red-900/10');
+                });
+            @endif
+        });
+
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.bg-green-50, .bg-red-50, .bg-blue-50, .bg-yellow-50');
+            alerts.forEach(alert => {
+                alert.style.transition = 'opacity 0.5s ease';
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.parentNode.removeChild(alert);
+                    }
+                }, 500);
+            });
+        }, 5000);
+    </script>
 </x-app-layout>

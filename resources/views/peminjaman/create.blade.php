@@ -82,7 +82,7 @@
 
                 <!-- Form Content -->
                 <div class="p-8">
-                    <form method="POST" action="{{ route('peminjaman.store') }}" class="space-y-10" id="peminjaman-form">
+                    <form id="peminjaman-form" method="POST" action="{{ route('peminjaman.store') }}" class="space-y-10">
                         @csrf
 
                         <!-- Section 1: Data Mahasiswa -->
@@ -338,7 +338,7 @@
                                     </svg>
                                     Batal
                                 </button>
-                                <button type="submit"
+                                <button type="button" onclick="konfirmasiSimpanPeminjaman()"
                                     class="inline-flex justify-center items-center rounded-lg border border-transparent bg-gradient-to-r from-blue-600 to-indigo-600 py-3 px-8 text-sm font-semibold text-white shadow-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
@@ -371,9 +371,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('tgl_pinjam').value = today;
 
     // Set default return date (7 days from now)
-    // const nextWeek = new Date();
-    // nextWeek.setDate(nextWeek.getDate() + 7);
-    // document.getElementById('tgl_kembali_rencana').value = nextWeek.toISOString().split('T')[0];
+    const nextWeek = new Date();
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    document.getElementById('tgl_kembali_rencana').value = nextWeek.toISOString().split('T')[0];
 
     // Search NIM functionality with SweetAlert
     document.getElementById('search-nim').addEventListener('click', function() {
@@ -384,7 +384,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 icon: 'warning',
                 title: 'NIM Kosong',
                 text: 'Masukkan NIM terlebih dahulu.',
-                confirmButtonColor: '#3085d6',
+                confirmButtonColor: '#4F46E5',
+                width: '400px'
             });
             return;
         }
@@ -392,8 +393,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show loading
         Swal.fire({
             title: 'Mencari Data...',
-            text: 'Sedang mencari data mahasiswa',
+            html: `<div class="text-left">
+                <p>Mencari data mahasiswa dengan NIM:</p>
+                <div class="bg-gray-50 p-3 rounded mt-2">
+                    <p class="font-mono text-lg text-center font-bold">${nim}</p>
+                </div>
+            </div>`,
             allowOutsideClick: false,
+            showConfirmButton: false,
             didOpen: () => {
                 Swal.showLoading();
             }
@@ -425,16 +432,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 Swal.fire({
                     icon: 'success',
                     title: 'Data Ditemukan!',
-                    text: 'Data mahasiswa berhasil dimuat.',
-                    showConfirmButton: false,
-                    timer: 1500
+                    html: `<div class="text-left">
+                        <p>Data mahasiswa berhasil dimuat.</p>
+                        <div class="bg-green-50 p-3 rounded mt-3">
+                            <p class="text-sm"><strong>Informasi yang dimuat:</strong></p>
+                            <ul class="text-xs text-gray-700 space-y-1 mt-1">
+                                <li>Nama: ${data.data.nama}</li>
+                                ${data.data.jurusan_raw ? `<li>Jurusan: ${data.data.jurusan_raw}</li>` : ''}
+                                ${data.data.angkatan ? `<li>Angkatan: ${data.data.angkatan}</li>` : ''}
+                                ${data.data.email ? `<li>Email: ${data.data.email}</li>` : ''}
+                            </ul>
+                        </div>
+                    </div>`,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Lanjutkan',
+                    confirmButtonColor: '#10B981',
+                    width: '500px'
                 });
             } else {
                 Swal.fire({
                     icon: 'info',
                     title: 'Data Tidak Ditemukan',
-                    text: 'Mahasiswa dengan NIM tersebut tidak terdaftar. Silakan isi data manual.',
-                    confirmButtonColor: '#3085d6',
+                    html: `<div class="text-left">
+                        <p>Mahasiswa dengan NIM <strong>${nim}</strong> tidak terdaftar.</p>
+                        <div class="bg-blue-50 p-3 rounded mt-3">
+                            <p class="text-sm">Silakan isi data mahasiswa secara manual. Data akan tersimpan sebagai mahasiswa baru.</p>
+                        </div>
+                    </div>`,
+                    confirmButtonText: 'Mengerti',
+                    confirmButtonColor: '#4F46E5',
+                    width: '500px'
                 });
             }
         })
@@ -442,64 +469,50 @@ document.addEventListener('DOMContentLoaded', function() {
             Swal.fire({
                 icon: 'error',
                 title: 'Terjadi Kesalahan',
-                text: 'Gagal mencari data. Periksa koneksi Anda.',
-                confirmButtonColor: '#d33',
+                html: `<div class="text-left">
+                    <p>Gagal mencari data. Silakan coba lagi.</p>
+                    <div class="bg-red-50 p-3 rounded mt-3">
+                        <p class="text-xs">Pesan error: ${error.message}</p>
+                    </div>
+                </div>`,
+                confirmButtonColor: '#EF4444',
+                width: '450px'
             });
             console.error('Error:', error);
         });
-    });
-
-    // Form submission with validation
-    document.getElementById('peminjaman-form').addEventListener('submit', function(e) {
-        const nim = document.getElementById('nim').value.trim();
-        const nama = document.getElementById('nama').value.trim();
-        const barang = document.getElementById('barang_id').value;
-        const tglPinjam = document.getElementById('tgl_pinjam').value;
-        const tglKembali = document.getElementById('tgl_kembali_rencana').value;
-
-        // Basic validation
-        if (!nim || !nama || !barang || !tglPinjam || !tglKembali) {
-            e.preventDefault();
-            Swal.fire({
-                icon: 'warning',
-                title: 'Data Belum Lengkap',
-                text: 'Harap lengkapi semua field yang wajib diisi.',
-                confirmButtonColor: '#3085d6',
-            });
-            return;
-        }
-
-        // Date validation
-        if (new Date(tglKembali) < new Date(tglPinjam)) {
-            e.preventDefault();
-            Swal.fire({
-                icon: 'error',
-                title: 'Tanggal Tidak Valid',
-                text: 'Tanggal rencana kembali tidak boleh sebelum tanggal pinjam.',
-                confirmButtonColor: '#d33',
-            });
-        }
     });
 
     // Cancel confirmation
     window.confirmCancel = function() {
         Swal.fire({
             title: 'Batalkan Pengisian?',
-            text: 'Semua data yang telah dimasukkan akan hilang.',
+            html: `<div class="text-left">
+                <p>Semua data yang telah dimasukkan akan hilang.</p>
+                <div class="bg-yellow-50 border-l-4 border-yellow-500 p-3 mt-3 rounded">
+                    <p class="text-sm text-yellow-700">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.408 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                        <strong>Perhatian:</strong> Data yang sudah diisi tidak akan tersimpan.
+                    </p>
+                </div>
+            </div>`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
+            confirmButtonColor: '#EF4444',
+            cancelButtonColor: '#6B7280',
             confirmButtonText: 'Ya, Batalkan',
-            cancelButtonText: 'Lanjutkan Edit'
+            cancelButtonText: 'Lanjutkan Edit',
+            reverseButtons: true,
+            width: '450px'
         }).then((result) => {
             if (result.isConfirmed) {
-                window.location.href = '{{ route("dashboard") }}';
+                window.location.href = '{{ route("peminjaman.index") }}';
             }
         });
     };
 
-    // Real-time form validation indicators
+    // Real-time form validation
     const requiredFields = ['nim', 'nama', 'barang_id', 'tgl_pinjam', 'tgl_kembali_rencana'];
 
     requiredFields.forEach(fieldId => {
@@ -516,5 +529,320 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
+
+    // Validasi tanggal real-time
+    document.getElementById('tgl_kembali_rencana').addEventListener('change', function() {
+        const tglPinjam = document.getElementById('tgl_pinjam').value;
+        const tglKembali = this.value;
+
+        if (tglPinjam && tglKembali) {
+            if (new Date(tglKembali) < new Date(tglPinjam)) {
+                this.classList.add('border-red-300', 'dark:border-red-700');
+            } else {
+                this.classList.remove('border-red-300', 'dark:border-red-700');
+            }
+        }
+    });
 });
+
+// Fungsi untuk konfirmasi simpan peminjaman
+function konfirmasiSimpanPeminjaman() {
+    // Validasi form terlebih dahulu
+    const nim = document.getElementById('nim').value.trim();
+    const nama = document.getElementById('nama').value.trim();
+    const jurusan = document.getElementById('jurusan_raw').value.trim();
+    const angkatan = document.getElementById('angkatan').value.trim();
+    const barangSelect = document.getElementById('barang_id');
+    const barang = barangSelect.value;
+    const barangText = barangSelect.options[barangSelect.selectedIndex]?.text || '';
+    const tglPinjam = document.getElementById('tgl_pinjam').value;
+    const tglKembali = document.getElementById('tgl_kembali_rencana').value;
+    const kondisi = document.getElementById('kondisi_pinjam_raw').value.trim() || 'Normal';
+    const keperluan = document.getElementById('keperluan').value.trim() || 'Tidak diisi';
+
+    // Validasi field wajib
+    if (!nim || !nama || !jurusan || !angkatan || !barang || !tglPinjam || !tglKembali) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Data Belum Lengkap',
+            html: `<div class="text-left">
+                <p>Harap lengkapi semua field yang wajib diisi:</p>
+                <div class="bg-red-50 p-3 rounded mt-3">
+                    <ul class="text-sm text-red-700 space-y-1 list-disc pl-4">
+                        ${!nim ? '<li>NIM mahasiswa</li>' : ''}
+                        ${!nama ? '<li>Nama lengkap</li>' : ''}
+                        ${!jurusan ? '<li>Jurusan / Program Studi</li>' : ''}
+                        ${!angkatan ? '<li>Angkatan</li>' : ''}
+                        ${!barang ? '<li>Barang yang dipinjam</li>' : ''}
+                        ${!tglPinjam ? '<li>Tanggal pinjam</li>' : ''}
+                        ${!tglKembali ? '<li>Tanggal rencana kembali</li>' : ''}
+                    </ul>
+                </div>
+                <p class="text-xs text-gray-500 mt-3">Field dengan tanda (*) wajib diisi</p>
+            </div>`,
+            confirmButtonColor: '#EF4444',
+            width: '500px'
+        });
+        return;
+    }
+
+    // Validasi tanggal
+    if (new Date(tglKembali) < new Date(tglPinjam)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Tanggal Tidak Valid',
+            html: `<div class="text-left">
+                <p>Tanggal rencana kembali tidak boleh sebelum tanggal pinjam.</p>
+                <div class="bg-red-50 p-3 rounded mt-3">
+                    <p class="text-sm">Tanggal Pinjam: <strong>${formatTanggal(tglPinjam)}</strong></p>
+                    <p class="text-sm">Rencana Kembali: <strong>${formatTanggal(tglKembali)}</strong></p>
+                </div>
+            </div>`,
+            confirmButtonColor: '#EF4444',
+            width: '450px'
+        });
+        return;
+    }
+
+    // Format tanggal untuk tampilan
+    function formatTanggal(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('id-ID', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+
+    // Hitung durasi peminjaman
+    const tglPinjamObj = new Date(tglPinjam);
+    const tglKembaliObj = new Date(tglKembali);
+    const diffTime = Math.abs(tglKembaliObj - tglPinjamObj);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    // Cek apakah mahasiswa sudah terdaftar
+    fetch(`{{ route('api.mahasiswa.search') }}?nim=${encodeURIComponent(nim)}`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const statusMahasiswa = data.found ? 'Terdaftar' : 'Baru';
+
+        // Tampilkan konfirmasi dengan ringkasan data
+        Swal.fire({
+            title: 'Konfirmasi Simpan Data Peminjaman',
+            html: `<div class="text-left space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <h3 class="font-semibold text-gray-700">Data Mahasiswa</h3>
+                        <div class="bg-gray-50 p-3 rounded">
+                            <p class="text-sm"><span class="font-medium">NIM:</span> <span class="font-mono">${nim}</span></p>
+                            <p class="text-sm"><span class="font-medium">Nama:</span> ${nama}</p>
+                            <p class="text-sm"><span class="font-medium">Jurusan:</span> ${jurusan}</p>
+                            <p class="text-sm"><span class="font-medium">Angkatan:</span> ${angkatan}</p>
+                            <p class="text-sm"><span class="font-medium">Status:</span>
+                                <span class="px-2 py-0.5 rounded text-xs font-medium ${statusMahasiswa === 'Terdaftar' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}">
+                                    ${statusMahasiswa === 'Terdaftar' ? '✓ Sudah Terdaftar' : '➕ Baru'}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h3 class="font-semibold text-gray-700">Data Peminjaman</h3>
+                        <div class="bg-gray-50 p-3 rounded">
+                            <p class="text-sm"><span class="font-medium">Barang:</span> ${barangText.split('(')[0]}</p>
+                            <p class="text-sm"><span class="font-medium">Kondisi:</span> ${kondisi}</p>
+                            <p class="text-sm"><span class="font-medium">Tanggal Pinjam:</span> ${formatTanggal(tglPinjam)}</p>
+                            <p class="text-sm"><span class="font-medium">Rencana Kembali:</span> ${formatTanggal(tglKembali)}</p>
+                            <p class="text-sm"><span class="font-medium">Durasi:</span> ${diffDays} hari</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <h3 class="font-semibold text-gray-700">Informasi Tambahan</h3>
+                    <div class="bg-blue-50 p-3 rounded">
+                        <p class="text-sm"><span class="font-medium">Keperluan:</span> ${keperluan}</p>
+                    </div>
+                </div>
+
+                <div class="bg-yellow-50 border-l-4 border-yellow-500 p-3 rounded">
+                    <p class="text-sm text-yellow-700">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.408 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                        <strong>Perhatian:</strong> Data akan disimpan ke 2 tabel database (Mahasiswa & Peminjaman)
+                    </p>
+                    <ul class="text-xs text-yellow-600 mt-1 space-y-1 pl-4 list-disc">
+                        <li>Data mahasiswa akan tersimpan sebagai master data</li>
+                        <li>Transaksi peminjaman akan tercatat dengan status "Dipinjam"</li>
+                        <li>Stok barang akan berkurang 1 unit</li>
+                        <li>Data tidak dapat diedit setelah disimpan</li>
+                    </ul>
+                </div>
+            </div>`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10B981',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Ya, Simpan Data',
+            cancelButtonText: 'Periksa Kembali',
+            reverseButtons: true,
+            width: '600px',
+            didOpen: () => {
+                // Fokus ke tombol cancel untuk keamanan
+                const cancelButton = Swal.getCancelButton();
+                cancelButton.focus();
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Tampilkan loading dengan progress bar
+                Swal.fire({
+                    title: 'Menyimpan Data...',
+                    html: `
+                        <div class="text-left">
+                            <p>Menyimpan data peminjaman ke database</p>
+                            <div class="mt-4">
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div id="save-progress-bar" class="bg-indigo-600 h-2 rounded-full" style="width: 0%"></div>
+                                </div>
+                                <p id="save-progress-text" class="text-xs text-center mt-2 text-gray-600">0% • Memulai...</p>
+                            </div>
+                            <div class="mt-4 space-y-2">
+                                <div class="flex items-center text-sm">
+                                    <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center mr-2">
+                                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    </div>
+                                    <span>Menyimpan data mahasiswa...</span>
+                                </div>
+                                <div class="flex items-center text-sm">
+                                    <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center mr-2">
+                                        <span class="text-xs text-gray-500">2</span>
+                                    </div>
+                                    <span>Mengurangi stok barang...</span>
+                                </div>
+                                <div class="flex items-center text-sm">
+                                    <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center mr-2">
+                                        <span class="text-xs text-gray-500">3</span>
+                                    </div>
+                                    <span>Mencatat transaksi peminjaman...</span>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        // Simulasi progress
+                        let progress = 0;
+                        const interval = setInterval(() => {
+                            progress += 10;
+                            if (progress > 90) progress = 90;
+
+                            const progressBar = document.getElementById('save-progress-bar');
+                            const progressText = document.getElementById('save-progress-text');
+
+                            if (progressBar && progressText) {
+                                progressBar.style.width = `${progress}%`;
+                                progressText.textContent = `${progress}% • Memproses...`;
+                            }
+
+                            if (progress >= 90) {
+                                clearInterval(interval);
+                            }
+                        }, 200);
+                    }
+                });
+
+                // Submit form
+                setTimeout(() => {
+                    document.getElementById('peminjaman-form').submit();
+                }, 1500);
+            }
+        });
+    })
+    .catch(error => {
+        console.error('Error checking mahasiswa:', error);
+        // Tampilkan konfirmasi tanpa informasi status mahasiswa
+        Swal.fire({
+            title: 'Konfirmasi Simpan Data Peminjaman',
+            html: `<div class="text-left">
+                <p>Apakah Anda yakin ingin menyimpan data peminjaman ini?</p>
+                <div class="bg-gray-50 p-3 rounded mt-3">
+                    <p class="text-sm"><strong>Mahasiswa:</strong> ${nama} (${nim})</p>
+                    <p class="text-sm"><strong>Barang:</strong> ${barangText.split('(')[0]}</p>
+                    <p class="text-sm"><strong>Durasi:</strong> ${diffDays} hari</p>
+                </div>
+            </div>`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10B981',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Ya, Simpan',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Submit form langsung
+                document.getElementById('peminjaman-form').submit();
+            }
+        });
+    });
+}
+
+// Flash Messages dengan SweetAlert
+@if (session('success'))
+    Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: '{{ session('success') }}',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        background: '#f0fdf4',
+        iconColor: '#10B981',
+        color: '#065F46',
+    });
+@endif
+
+@if (session('error'))
+    Swal.fire({
+        icon: 'error',
+        title: 'Gagal!',
+        text: '{{ session('error') }}',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true,
+        background: '#FEF2F2',
+        iconColor: '#EF4444',
+        color: '#991B1B',
+    });
+@endif
+
+@if (session('warning'))
+    Swal.fire({
+        icon: 'warning',
+        title: 'Perhatian!',
+        text: '{{ session('warning') }}',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3500,
+        timerProgressBar: true,
+        background: '#FFFBEB',
+        iconColor: '#F59E0B',
+        color: '#92400E',
+    });
+@endif
 </script>

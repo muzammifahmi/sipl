@@ -52,10 +52,45 @@ class MahasiswaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        //
+// MahasiswaController.php
+public function update(Request $request, Mahasiswa $mahasiswa)
+{
+    $validated = $request->validate([
+        'nim' => 'required|string|max:20',
+        'nama' => 'required|string|max:255',
+        'email' => 'required|email|max:255',
+        'angkatan' => 'required|integer|min:2000|max:2030',
+        'jurusan_raw' => 'required|string|max:255',
+    ]);
+
+    // Check if jurusan_raw was changed
+    $jurusanChanged = $mahasiswa->jurusan_raw !== $validated['jurusan_raw'];
+
+    // Reset jurusan_clean if jurusan_raw was changed
+    if ($jurusanChanged) {
+        $validated['jurusan_clean'] = null;
     }
+
+    $mahasiswa->update($validated);
+
+    if ($request->ajax()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Data mahasiswa berhasil diperbarui.',
+            'jurusan_changed' => $jurusanChanged
+        ]);
+    }
+
+    // Set session message based on whether jurusan was changed
+    if ($jurusanChanged) {
+        return redirect()->route('mahasiswa.index')
+            ->with('success', 'Data mahasiswa berhasil diperbarui.')
+            ->with('need_reprocess', 'Jurusan telah diubah. Jalankan preprocessing untuk memperbarui jurusan_clean.');
+    }
+
+    return redirect()->route('mahasiswa.index')
+        ->with('success', 'Data mahasiswa berhasil diperbarui.');
+}
 
     /**
      * Remove the specified resource from storage.

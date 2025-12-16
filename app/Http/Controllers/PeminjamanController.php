@@ -126,9 +126,40 @@ class PeminjamanController extends Controller
 
     public function destroy(Peminjaman $peminjaman)
     {
-        // Opsional: Hapus data (biasanya peminjaman jarang dihapus fisik, hanya ubah status)
-        $peminjaman->delete();
-        return back()->with('success', 'Data transaksi dihapus.');
+        try {
+            // Simpan info untuk response
+            $namaMahasiswa = $peminjaman->mahasiswa->nama;
+            $namaBarang = $peminjaman->barang->nama_barang;
+            $status = $peminjaman->status;
+
+            // Hapus data peminjaman
+            $peminjaman->delete();
+
+            // Jika request AJAX, return JSON
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Transaksi peminjaman berhasil dihapus',
+                    'data' => [
+                        'nama_mahasiswa' => $namaMahasiswa,
+                        'nama_barang' => $namaBarang,
+                        'status' => $status
+                    ]
+                ]);
+            }
+
+            // Jika bukan AJAX, redirect dengan pesan
+            return back()->with('success', 'Data transaksi dihapus.');
+        } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghapus data: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return back()->with('error', 'Gagal menghapus data.');
+        }
     }
 
     /**

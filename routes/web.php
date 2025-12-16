@@ -52,7 +52,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/preprocessing/data-bersih', [PreprocessingController::class, 'indexClean'])
         ->name('preprocessing.clean');
 
+    // Route untuk Import Data
+    Route::post('/preprocessing/import', [PreprocessingController::class, 'import'])
+        ->name('preprocessing.import');
+
     // (Opsional) Jika nanti Anda butuh fitur delete/edit, baru tambahkan resource di bawah ini:
     // Route::resource('preprocessing', PreprocessingController::class)->except(['index', 'show']);
 });
+
+Route::put('/mahasiswa/{mahasiswa}', [MahasiswaController::class, 'update'])->name('mahasiswa.update');
 require __DIR__ . '/auth.php';
