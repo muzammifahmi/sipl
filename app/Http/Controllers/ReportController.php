@@ -41,8 +41,8 @@ class ReportController extends Controller
                         $r->mahasiswa->nim ?? '',
                         $r->barang->nama_barang ?? '',
                         $r->status ?? '',
-                        optional($r->tgl_pinjam)->toDateString() ?? '',
-                        optional($r->tgl_kembali_rencana)->toDateString() ?? '',
+                        $r->tgl_pinjam ? $r->tgl_pinjam->toDateString() : '',
+                        $r->tgl_kembali_rencana ? $r->tgl_kembali_rencana->toDateString() : '',
                         $r->keperluan ?? '',
                     ]);
                 }

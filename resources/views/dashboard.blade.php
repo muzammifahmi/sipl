@@ -5,7 +5,7 @@
                 {{ __('Ringkasan Lab') }}
             </h2>
 
-            <a href="/input-data" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow transition-colors flex items-center gap-2">
+            <a href="{{ route('peminjaman.create') }}" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow transition-colors flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Input Peminjaman Baru
             </a>
@@ -182,7 +182,7 @@
             <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
                 <div class="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
                     <h3 class="text-lg font-semibold text-slate-800 dark:text-white">Peminjaman Terakhir</h3>
-                    <a href="#" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Lihat Semua</a>
+                    <a href="{{ route('peminjaman.index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Lihat Semua</a>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm text-slate-600 dark:text-slate-400">
@@ -218,7 +218,7 @@
                                             </span>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4">{{ optional($r->tgl_pinjam)->diffForHumans() }}</td>
+                                    <td class="px-6 py-4">{{ $r->tgl_pinjam ? $r->tgl_pinjam->diffForHumans() : '-' }}</td>
                                     <td class="px-6 py-4 text-right">
                                         <button class="text-slate-400 hover:text-blue-700">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>

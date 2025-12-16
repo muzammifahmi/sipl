@@ -5,3 +5,9 @@ untuk menghapus branch
 git branch -D fitur-x
 git restore .
 git clean -fd
+
+
+git checkout main
+git pull origin main
+git merge nama-branch
+git push origin main

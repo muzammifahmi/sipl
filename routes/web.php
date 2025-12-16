@@ -38,6 +38,7 @@ Route::middleware('auth')->group(function () {
 });
 Route::get('/reports/export', [ReportController::class, 'export'])->middleware('auth')->name('reports.export');
 Route::resource('peminjaman', PeminjamanController::class)->middleware('auth');
+Route::post('/peminjaman/{peminjaman}/kembali', [PeminjamanController::class, 'kembali'])->middleware('auth')->name('peminjaman.kembali');
 Route::get('/api/mahasiswa/search', [PeminjamanController::class, 'searchMahasiswa'])->middleware('auth')->name('api.mahasiswa.search');
 Route::resource('barang', BarangController::class)->middleware('auth');
 Route::resource('mahasiswa', MahasiswaController::class)->middleware('auth');
@@ -52,7 +53,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/preprocessing/data-bersih', [PreprocessingController::class, 'indexClean'])
         ->name('preprocessing.clean');
 
-    // (Opsional) Jika nanti Anda butuh fitur delete/edit, baru tambahkan resource di bawah ini:
-    // Route::resource('preprocessing', PreprocessingController::class)->except(['index', 'show']);
+    // Route untuk Import Data
+    Route::post('/preprocessing/import', [PreprocessingController::class, 'import'])
+        ->name('preprocessing.import');
 });
+// routes/web.php
+Route::post('/peminjaman/{peminjaman}/kembali', [PeminjamanController::class, 'kembali'])
+    ->name('peminjaman.kembali.ajax');
 require __DIR__ . '/auth.php';

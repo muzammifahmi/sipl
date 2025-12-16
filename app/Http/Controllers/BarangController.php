@@ -103,26 +103,51 @@ class BarangController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Barang $barang)
-    {
-        // 1. Cek apakah barang sedang dipinjam?
-        // Logika: Jika Stok Tersedia < Stok Total, berarti ada yang sedang dipinjam.
-        if ($barang->stok_tersedia < $barang->stok_total) {
-            return back()->with('error', 'Gagal menghapus! Barang ini sedang dipinjam oleh mahasiswa. Pastikan semua barang dikembalikan dulu.');
+// Di BarangController.php
+public function destroy(Barang $barang)
+{
+    try {
+        // Simpan informasi untuk pesan
+        $namaBarang = $barang->nama_barang;
+        $kodeBarang = $barang->kode_barang;
+
+        // Cek apakah ada peminjaman aktif
+        $peminjamanAktif = $barang->peminjamans()
+            ->where('status', 'Dipinjam')
+            ->count();
+
+        if ($peminjamanAktif > 0) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Tidak bisa menghapus! Ada $peminjamanAktif peminjaman aktif untuk alat ini."
+                ], 422);
+            }
+            return back()->with('error', "Tidak bisa menghapus! Ada $peminjamanAktif peminjaman aktif untuk alat ini.");
         }
 
-        // 2. Cek apakah barang pernah dipinjam (Relasi Database)?
-        // Jika Anda menggunakan Foreign Key 'Cascade', data transaksi akan ikut terhapus (Bahaya).
-        // Lebih aman cek dulu relasinya.
-        if ($barang->peminjamans()->exists()) {
-            return back()->with('error', 'Gagal menghapus! Barang ini memiliki riwayat transaksi peminjaman. Data tidak boleh dihapus demi arsip.');
-        }
-
-        // 3. Hapus Data
+        // Hapus barang
         $barang->delete();
 
-        // 4. Redirect
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Alat '$namaBarang' ($kodeBarang) berhasil dihapus!"
+            ]);
+        }
+
         return redirect()->route('barang.index')
-            ->with('success', 'Data alat berhasil dihapus dari inventaris.');
+            ->with('success', "Alat '$namaBarang' ($kodeBarang) berhasil dihapus!");
+
+    } catch (\Exception $e) {
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus alat: ' . $e->getMessage()
+            ], 500);
+        }
+
+        return back()->with('error', 'Gagal menghapus alat: ' . $e->getMessage());
     }
+}
 }

@@ -6,17 +6,16 @@ use App\Models\Peminjaman;
 use App\Models\Barang;
 use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB; // Penting untuk transaksi database
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class PeminjamanController extends Controller
 {
     /**
-     * Menampilkan Riwayat Transaksi (Tabel 3)
+     * Menampilkan Riwayat Transaksi
      */
     public function index()
     {
-        // Eager loading 'mahasiswa' dan 'barang' agar query ringan
-        // Paginate sehingga view menerima Eloquent models (bukan array/stdClass)
         $peminjamans = Peminjaman::with(['mahasiswa', 'barang'])
             ->latest('tgl_pinjam')
             ->paginate(10);
@@ -25,7 +24,16 @@ class PeminjamanController extends Controller
     }
 
     /**
-     * Menyimpan Data dari Form Input (Logic Inti Akuisisi Data)
+     * Form Input Peminjaman Baru
+     */
+    public function create()
+    {
+        $barangs = Barang::where('stok_tersedia', '>', 0)->get();
+        return view('peminjaman.create', compact('barangs'));
+    }
+
+    /**
+     * Menyimpan Data Peminjaman Baru
      */
     public function store(Request $request)
     {
@@ -34,13 +42,13 @@ class PeminjamanController extends Controller
             // Validasi Mahasiswa
             'nim' => 'required|string|max:20',
             'nama' => 'required|string|max:255',
-            'jurusan_raw' => 'required|string', // Raw data untuk preprocessing
+            'jurusan_raw' => 'required|string',
             'angkatan' => 'required|numeric',
             'email' => 'required|email',
 
             // Validasi Barang
             'barang_id' => 'required|exists:barangs,id',
-            'kondisi_pinjam_raw' => 'required|string', // Raw data
+            'kondisi_pinjam_raw' => 'required|string',
 
             // Validasi Peminjaman
             'tgl_pinjam' => 'required|date',
@@ -49,22 +57,19 @@ class PeminjamanController extends Controller
         ]);
 
         try {
-            // Gunakan Transaksi DB: Semua sukses atau tidak sama sekali
             DB::transaction(function () use ($request) {
-
-                // A. HANDLE MAHASISWA (Tabel 1)
-                // Cek apakah NIM sudah ada? Jika ada update, jika belum buat baru.
+                // A. HANDLE MAHASISWA
                 $mahasiswa = Mahasiswa::updateOrCreate(
-                    ['nim' => $request->nim], // Kunci pencarian
+                    ['nim' => $request->nim],
                     [
                         'nama' => $request->nama,
-                        'jurusan_raw' => $request->jurusan_raw, // Simpan input mentah user
+                        'jurusan_raw' => $request->jurusan_raw,
                         'angkatan' => $request->angkatan,
                         'email' => $request->email,
                     ]
                 );
 
-                // B. HANDLE BARANG (Tabel 2)
+                // B. HANDLE BARANG
                 $barang = Barang::findOrFail($request->barang_id);
 
                 // Cek Stok
@@ -75,60 +80,121 @@ class PeminjamanController extends Controller
                 // Kurangi Stok
                 $barang->decrement('stok_tersedia');
 
-                // C. HANDLE PEMINJAMAN (Tabel 3 - Transaksi)
+                // C. HANDLE PEMINJAMAN
                 Peminjaman::create([
-                    'mahasiswa_id' => $mahasiswa->id, // Ambil ID dari proses A
-                    'barang_id' => $barang->id,       // Ambil ID dari input
+                    'mahasiswa_id' => $mahasiswa->id,
+                    'barang_id' => $barang->id,
                     'tgl_pinjam' => $request->tgl_pinjam,
                     'tgl_kembali_rencana' => $request->tgl_kembali_rencana,
-                    'kondisi_pinjam_raw' => $request->kondisi_pinjam_raw, // Simpan input mentah
+                    'kondisi_pinjam' => $request->kondisi_pinjam_raw, // Sesuaikan dengan field di database
                     'keperluan' => $request->keperluan,
                     'status' => 'Dipinjam',
-                    'is_preprocessed' => false, // Default belum dipreprocess
+                    'is_preprocessed' => false,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             });
 
-            return redirect()->route('peminjaman.index');
+            return redirect()->route('peminjaman.index')
+                ->with('success', 'Peminjaman berhasil disimpan!');
+
         } catch (\Exception $e) {
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
+            return back()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
+                ->withInput();
         }
     }
 
     /**
-     * Fitur Pengembalian Barang (Update Status & Stok)
+     * Fitur Pengembalian Barang
      */
-    public function create()
-    {
-        // Ambil data barang untuk dropdown peminjaman
-        $barangs = Barang::where('stok_tersedia', '>', 0)->get();
-
-        return view('peminjaman.create', compact('barangs'));
-    }
-
     public function update(Request $request, Peminjaman $peminjaman)
     {
-        // Jika status diubah menjadi 'Kembali'
+        // Validasi untuk pengembalian
         if ($request->status == 'Kembali' && $peminjaman->status != 'Kembali') {
-            DB::transaction(function () use ($peminjaman) {
+            $request->validate([
+                'kondisi_kembali' => 'required|string|in:Baik,Rusak Ringan,Rusak Berat,Hilang',
+                'catatan' => 'nullable|string|max:500',
+            ]);
+
+            try {
+                DB::transaction(function () use ($peminjaman, $request) {
+                    // 1. Update status peminjaman
+                    $peminjaman->update([
+                        'status' => 'Kembali',
+                        'tgl_kembali_realisasi' => now(),
+                        'kondisi_kembali' => $request->kondisi_kembali,
+                        'catatan' => $request->catatan,
+                        'updated_at' => now(),
+                    ]);
+
+                    // 2. Kembalikan Stok Barang
+                    $peminjaman->barang->increment('stok_tersedia');
+                });
+
+                return back()->with('success', 'Barang berhasil dikembalikan & stok dipulihkan.');
+
+            } catch (\Exception $e) {
+                return back()->with('error', 'Gagal mengembalikan barang: ' . $e->getMessage());
+            }
+        }
+
+        return back()->with('warning', 'Tidak ada perubahan status.');
+    }
+
+    /**
+     * Fungsi Pengembalian dengan SweetAlert (AJAX)
+     */
+    public function kembali(Request $request, Peminjaman $peminjaman)
+    {
+        $request->validate([
+            'kondisi' => 'required|string|in:Baik,Rusak Ringan,Rusak Berat,Hilang',
+            'catatan' => 'nullable|string|max:500',
+        ]);
+
+        if ($peminjaman->status == 'Kembali') {
+            return response()->json(['success' => false, 'message' => 'Barang sudah dikembalikan sebelumnya.']);
+        }
+
+        try {
+            DB::transaction(function () use ($peminjaman, $request) {
                 // 1. Update status peminjaman
                 $peminjaman->update([
                     'status' => 'Kembali',
                     'tgl_kembali_realisasi' => now(),
+                    'kondisi_kembali' => $request->kondisi,
+                    'catatan' => $request->catatan,
+                    'updated_at' => now(),
                 ]);
 
                 // 2. Kembalikan Stok Barang
                 $peminjaman->barang->increment('stok_tersedia');
             });
-        }
 
-        return back()->with('success', 'Barang berhasil dikembalikan & stok dipulihkan.');
+            return response()->json(['success' => true, 'message' => 'Barang berhasil dikembalikan.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage()]);
+        }
     }
 
+    /**
+     * Hapus Data Peminjaman
+     */
     public function destroy(Peminjaman $peminjaman)
     {
-        // Opsional: Hapus data (biasanya peminjaman jarang dihapus fisik, hanya ubah status)
-        $peminjaman->delete();
-        return back()->with('success', 'Data transaksi dihapus.');
+        try {
+            // Jika status masih 'Dipinjam', kembalikan stok terlebih dahulu
+            if ($peminjaman->status == 'Dipinjam') {
+                $peminjaman->barang->increment('stok_tersedia');
+            }
+
+            $peminjaman->delete();
+
+            return back()->with('success', 'Data transaksi berhasil dihapus.');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -156,5 +222,25 @@ class PeminjamanController extends Controller
         } else {
             return response()->json(['found' => false]);
         }
+    }
+
+    /**
+     * Menampilkan detail peminjaman
+     */
+    public function show(Peminjaman $peminjaman)
+    {
+        $peminjaman->load(['mahasiswa', 'barang']);
+        return view('peminjaman.show', compact('peminjaman'));
+    }
+
+    /**
+     * Edit data peminjaman (untuk admin)
+     */
+    public function edit(Peminjaman $peminjaman)
+    {
+        $barangs = Barang::all();
+        $peminjaman->load(['mahasiswa', 'barang']);
+
+        return view('peminjaman.edit', compact('peminjaman', 'barangs'));
     }
 }

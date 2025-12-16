@@ -237,24 +237,253 @@
     </div>
 </x-app-layout>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-@if(session('success'))
-    Swal.fire({
-        icon: 'success',
-        title: 'Berhasil!',
-        text: '{{ session("success") }}',
-        showConfirmButton: false,
-        timer: 3000
-    });
-@endif
+    // SweetAlert untuk Flash Messages
+    @if (session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: '{{ session('success') }}',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            background: '#f0fdf4',
+            iconColor: '#22c55e',
+            color: '#166534',
+        });
+    @endif
 
-@if(session('error'))
-    Swal.fire({
-        icon: 'error',
-        title: 'Gagal!',
-        text: '{{ session("error") }}',
-        confirmButtonColor: '#d33'
-    });
-@endif
+    @if (session('error'))
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            text: '{{ session('error') }}',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 4000,
+            timerProgressBar: true,
+            background: '#fef2f2',
+            iconColor: '#ef4444',
+            color: '#991b1b',
+        });
+    @endif
+
+    // Fungsi untuk konfirmasi pengembalian
+    function konfirmasiKembali(event, namaPeminjam, barang) {
+        event.preventDefault();
+        const form = event.target.closest('form');
+
+        Swal.fire({
+            title: 'Konfirmasi Pengembalian',
+            html: `<div class="text-left">
+                <p class="mb-2">Apakah Anda yakin ingin menandai peminjaman sebagai <strong>KEMBALI</strong>?</p>
+                <div class="bg-blue-50 p-3 rounded mt-3">
+                    <p class="text-sm"><span class="font-semibold">Peminjam:</span> ${namaPeminjam}</p>
+                    <p class="text-sm"><span class="font-semibold">Barang:</span> ${barang}</p>
+                </div>
+            </div>`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Ya, Tandai Kembali',
+            cancelButtonText: 'Batal',
+            reverseButtons: true,
+            width: '500px'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    }
+
+    // Fungsi untuk konfirmasi penghapusan
+    function konfirmasiHapus(event, namaPeminjam) {
+        event.preventDefault();
+        const form = event.target.closest('form');
+
+        Swal.fire({
+            title: 'Konfirmasi Penghapusan',
+            html: `<div class="text-left">
+                <p class="mb-3 text-red-600 font-semibold">Perhatian: Tindakan ini tidak dapat dibatalkan!</p>
+                <p>Apakah Anda yakin ingin menghapus data peminjaman atas nama:</p>
+                <div class="bg-red-50 p-3 rounded mt-2">
+                    <p class="text-lg font-bold text-center">${namaPeminjam}</p>
+                </div>
+                <p class="text-sm text-gray-500 mt-3">Semua data terkait peminjaman ini akan dihapus permanen.</p>
+            </div>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Ya, Hapus Data',
+            cancelButtonText: 'Batalkan',
+            reverseButtons: true,
+            width: '500px'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    }
+
+    // Fungsi untuk menampilkan detail peminjaman
+    function showDetailPeminjaman(id, nama, nim, barang, kondisi, status, tanggalPinjam, tanggalKembali, catatan = '') {
+        // Format tanggal
+        const formatTanggal = (dateString) => {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        };
+
+        // Warna status
+        const statusColors = {
+            'Dipinjam': 'bg-yellow-100 text-yellow-800',
+            'Kembali': 'bg-green-100 text-green-800',
+            'Telat': 'bg-red-100 text-red-800'
+        };
+
+        const statusColor = statusColors[status] || 'bg-gray-100 text-gray-800';
+
+        Swal.fire({
+            title: 'Detail Peminjaman',
+            html: `<div class="text-left space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <h3 class="font-semibold text-gray-700">Data Peminjam</h3>
+                        <div class="bg-gray-50 p-3 rounded">
+                            <p class="text-sm"><span class="font-medium">Nama:</span> ${nama}</p>
+                            <p class="text-sm"><span class="font-medium">NIM:</span> ${nim}</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h3 class="font-semibold text-gray-700">Informasi Barang</h3>
+                        <div class="bg-gray-50 p-3 rounded">
+                            <p class="text-sm"><span class="font-medium">Barang:</span> ${barang}</p>
+                            <p class="text-sm"><span class="font-medium">Kondisi Awal:</span> ${kondisi}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <h3 class="font-semibold text-gray-700">Waktu Peminjaman</h3>
+                        <div class="bg-blue-50 p-3 rounded">
+                            <p class="text-sm">${formatTanggal(tanggalPinjam)}</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h3 class="font-semibold text-gray-700">Waktu Pengembalian</h3>
+                        <div class="bg-green-50 p-3 rounded">
+                            <p class="text-sm">${tanggalKembali ? formatTanggal(tanggalKembali) : 'Belum dikembalikan'}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <h3 class="font-semibold text-gray-700">Status</h3>
+                    <span class="px-3 py-1 rounded-full text-sm font-medium ${statusColor}">
+                        ${status}
+                    </span>
+                </div>
+
+                ${catatan ? `
+                <div class="space-y-2">
+                    <h3 class="font-semibold text-gray-700">Catatan</h3>
+                    <div class="bg-yellow-50 p-3 rounded">
+                        <p class="text-sm">${catatan}</p>
+                    </div>
+                </div>
+                ` : ''}
+
+                <div class="text-xs text-gray-500 pt-4 border-t">
+                    <p>ID Transaksi: ${id}</p>
+                </div>
+            </div>`,
+            width: '600px',
+            showConfirmButton: true,
+            confirmButtonText: 'Tutup',
+            confirmButtonColor: '#3b82f6',
+            showCloseButton: true
+        });
+    }
+
+    // Fungsi untuk menampilkan form pengembalian dengan kondisi
+    function showFormPengembalian(event, id, nama, barang) {
+        event.preventDefault();
+
+        Swal.fire({
+            title: 'Konfirmasi Pengembalian Barang',
+            html: `<div class="text-left">
+                <p class="mb-4">Apakah Anda yakin ingin mengembalikan barang ini?</p>
+                <div class="bg-blue-50 p-3 rounded">
+                    <p class="text-sm"><span class="font-semibold">Peminjam:</span> ${nama}</p>
+                    <p class="text-sm"><span class="font-semibold">Barang:</span> ${barang}</p>
+                </div>
+            </div>`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Ya, Kembalikan',
+            cancelButtonText: 'Batal',
+            reverseButtons: true,
+            width: '500px'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Kirim data ke server dengan kondisi default
+                fetch(`/peminjaman/${id}/kembali`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        kondisi: 'Baik',
+                        catatan: ''
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: data.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal!',
+                            text: data.message
+                        });
+                    }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Terjadi kesalahan saat menyimpan data'
+                    });
+                });
+            }
+        });
+    }
 </script>
-
